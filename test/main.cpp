@@ -1,6 +1,2 @@
-#include "gtest/gtest.h"
-
-GTEST_API_ int main(int argc, char** argv) {
-  testing::InitGoogleTest(&argc, argv);
-  return RUN_ALL_TESTS();
-}
+#define BOOST_TEST_MAIN                 // 必须定义主测试套件，必须位于头文件之前
+#include <boost/test/unit_test.hpp>

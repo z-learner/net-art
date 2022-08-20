@@ -8,6 +8,7 @@
 #include <boost/system/error_code.hpp>
 #include <boost/system/system_error.hpp>
 #include <boost/thread.hpp>
+#include <boost/shared_ptr.hpp>
 #include <functional>
 #include <iostream>
 #include <string>
@@ -74,8 +75,9 @@ public:
     void SetDataRecvCallback(std::function<void(uint8_t*, size_t)> callback);
 };
 
-std::shared_ptr<Protocol> GetProtocolByConfig(
-    const ProtocolConfig& protocol_config
+boost::shared_ptr<Protocol> GetProtocolByConfig(
+    const ProtocolConfig& protocol_config,
+    const size_t buff_size
 );
 
 

@@ -6,12 +6,12 @@ void UdpServerProtocol::_initUdpServerProtocol() {
   using boost::asio::ip::address;
   using boost::asio::ip::udp;
   boost::system::error_code ec;
-  socket_.open(udp::v4());
-  socket_.bind(
+  socket_->open(udp::v4());
+  socket_->bind(
       udp::endpoint(address::from_string(protocol_config_.udp_server_ip_),
                     protocol_config_.udp_server_port_));
   _asyncReadSomeData();
-  boost::thread td(boost::bind(&boost::asio::io_service::run, &io_service_));
+  boost::thread td(boost::bind(&boost::asio::io_service::run, io_service_.get()));
 } 
 
 void UdpServerProtocol::_recvDataCallback(
@@ -27,7 +27,7 @@ void UdpServerProtocol::_recvDataCallback(
 
 
 void UdpServerProtocol::_asyncReadSomeData() {
-  socket_.async_receive_from(
+  socket_->async_receive_from(
       boost::asio::buffer(recv_data_buffer_, buff_size_), remote_endpoint_,
       boost::bind(&UdpServerProtocol::_recvDataCallback, this,
                   boost::placeholders::_1, boost::placeholders::_2));
@@ -36,7 +36,7 @@ void UdpServerProtocol::_asyncReadSomeData() {
 
 int UdpServerProtocol::ProtocolSendRawData(uint8_t* data, size_t size) {
   if (remote_endpoint_.port() != 0) {
-    int send_len = socket_.send_to(boost::asio::buffer(data, size), remote_endpoint_);
+    int send_len = socket_->send_to(boost::asio::buffer(data, size), remote_endpoint_);
     #ifndef NDEBUG
       std::cout << "Sent " << send_len << "Bytes to " << protocol_config_.udp_server_ip_ << ":" << protocol_config_.udp_server_port_ << std::endl;
     #endif
@@ -46,7 +46,7 @@ int UdpServerProtocol::ProtocolSendRawData(uint8_t* data, size_t size) {
 }
 
 int UdpServerProtocol::ProtocolDestory() {
-  io_service_.stop();
+  io_service_->stop();
   return 0;
 }
 

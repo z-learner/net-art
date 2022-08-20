@@ -9,7 +9,7 @@ add_compile_options(-std=c++14)
 # 消除boost的note
 add_compile_options(-D=BOOST_BIND_GLOBAL_PLACEHOLDERS)
 # 开启Debug模式
-SET(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
+SET(CMAKE_BUILD_TYPE Debug CACHE STRING "Build type" FORCE)
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 # 添加头文件
 include_directories(
@@ -28,6 +28,8 @@ file(GLOB_RECURSE PROTOCOL_LIB_SRC "src/*.cpp")
 
 # 查找依赖
 find_package(Boost REQUIRED COMPONENTS thread)
+message(STATUS "BOOST_LIBRARIES=${Boost_LIBRARIES}")
+find_package(Boost REQUIRED COMPONENTS unit_test_framework)
 if(NOT Boost_FOUND)
     message("NOT found Boost")
 endif()
@@ -37,10 +39,6 @@ add_library(${PROJECT_NAME} SHARED ${PROTOCOL_LIB_SRC})
 
 target_link_libraries(${PROJECT_NAME} pthread boost_thread )
 
-find_package(GTest REQUIRED)
-if(NOT GTest_FOUND)
-    message("NOT found GTest")
-endif()
 # 添加测试可执行文件
 add_executable(${PROJECT_NAME}_test  
     ${PROTOCOL_TESTS}
@@ -48,7 +46,9 @@ add_executable(${PROJECT_NAME}_test
 )
 target_link_libraries(${PROJECT_NAME}_test
     ${Boost_LIBRARIES}
-    gtest
+    pthread
+    boost_thread
+    Boost::unit_test_framework 
 )
 
 # 代码格式检查

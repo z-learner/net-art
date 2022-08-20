@@ -1,7 +1,6 @@
 
 #include "protocol.h"
-#include "gtest/gtest.h"
-
+#include <boost/test/unit_test.hpp>
 using boost::asio::ip::address;
 using boost::asio::ip::udp;
 
@@ -18,28 +17,30 @@ void Sender(std::string in, std::string ip, int port) {
   socket.close();
 }
 
-TEST(TestUdpServerProtocol, BoostSendData) {
+BOOST_AUTO_TEST_SUITE(s_udp_test);
+
+BOOST_AUTO_TEST_CASE(t_BoostSendData) {
   using namespace protocol;  // NOLINT
-  Sender("\x5A\x01\x02\x51\x02\x50\x01\x5A", "192.168.0.106", 3474);
+  Sender("QQQQQQQQLLLLLLLL", "192.168.0.106", 3474);
 }
 
-TEST(TestUdpServerProtocol, ReadData) {
+BOOST_AUTO_TEST_CASE(t_ReadData) {
   using namespace protocol;  // NOLINT
   ProtocolConfig proto_config;
   proto_config.protocol_type_ = PROTOCOL_TYPE::UDP_SERVER;
   proto_config.udp_server_ip_ = "0.0.0.0";
   proto_config.udp_server_port_ = 3474;
 
-  auto protocol = protocol::GetProtocolByConfig(proto_config);
+  auto protocol = protocol::GetProtocolByConfig(proto_config, 1000);
 
-  std::string send_data("\x5A\x01\x02\x51\x02\x50\x01\x5A");
+  std::string send_data("QQQQQQQQLLLLLLLL");
   protocol->SetDataRecvCallback([send_data](uint8_t* str, size_t size) -> void {
         std::string data((char*)str, size);
         std::cout << data << std::endl;
-        EXPECT_STREQ(send_data.data(), data.data());
+        BOOST_WARN_EQUAL(send_data.data(), data.data());
   });
 
-  Sender("\x5A\x01\x02\x51\x02\x50\x01\x5A", proto_config.udp_server_ip_,
+  Sender("QQQQQQQQLLLLLLLL", proto_config.udp_server_ip_,
          proto_config.udp_server_port_);
   /*
     关于Lambda:
@@ -51,14 +52,14 @@ TEST(TestUdpServerProtocol, ReadData) {
   protocol->ProtocolDestory();
 }
 
-TEST(TestUdpServerProtocol, ReadDataRemote) {
+BOOST_AUTO_TEST_CASE(t_ReadDataRemote) {
   using namespace protocol;  // NOLINT
   ProtocolConfig proto_config;
   proto_config.protocol_type_ = PROTOCOL_TYPE::UDP_SERVER;
   proto_config.udp_server_ip_ = "0.0.0.0";
   proto_config.udp_server_port_ = 3474;
 
-  auto protocol = protocol::GetProtocolByConfig(proto_config);
+  auto protocol = protocol::GetProtocolByConfig(proto_config, 1000);
 
   /*
     关于Lambda:
@@ -71,6 +72,12 @@ TEST(TestUdpServerProtocol, ReadDataRemote) {
     std::cout << std::string((char*)str, size) << std::endl;
   });
 
-  sleep(3);
+  sleep(10);
   protocol->ProtocolDestory();
 }
+
+
+
+
+BOOST_AUTO_TEST_SUITE_END()
+
