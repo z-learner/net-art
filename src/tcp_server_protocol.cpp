@@ -5,8 +5,9 @@
 namespace protocol {
 
 void TcpServerProtocol::_initTcpServerProtocol() {
-    acceptor_->async_accept(*(socket_.get()), 
-                           boost::bind(&TcpServerProtocol::handle_accept, this, boost::asio::placeholders::error, socket_));
+    boost::shared_ptr<boost::asio::ip::tcp::socket> socketTmp(boost::make_shared<boost::asio::ip::tcp::socket>(*(io_service_.get())));
+    acceptor_->async_accept(*(socketTmp.get()), 
+                           boost::bind(&TcpServerProtocol::handle_accept, this, boost::asio::placeholders::error, socketTmp));
     boost::thread td(boost::bind(&boost::asio::io_service::run, io_service_.get()));
 }
 
@@ -17,7 +18,9 @@ void TcpServerProtocol::handle_accept(const boost::system::error_code& err, boos
         // acceptor_.async_accept(*socket, 
         //                    boost::bind(&TcpServerProtocol::handle_accept, this, boost::asio::placeholders::error, socket));
         return;
-    } 
+    }
+    socket_->close();
+    socket_.reset(); 
     std::cout << "get a connection" << std::endl;
     std::cout << "remote ip : " << socket->remote_endpoint().address() << std::endl;
     std::cout << "remote port : " << socket->remote_endpoint().port() << std::endl;
@@ -25,11 +28,13 @@ void TcpServerProtocol::handle_accept(const boost::system::error_code& err, boos
     //     std::cout << "close outdate socket" << std::endl;
     // }
     // socket_ = std::move(*socket);
-    socket->async_read_some(boost::asio::buffer(recv_data_buffer_, buff_size_),
+    socket_ = socket;
+    socket_->async_read_some(boost::asio::buffer(recv_data_buffer_, buff_size_),
                             boost::bind(&TcpServerProtocol::_recvDataCallback, this, boost::placeholders::_1, boost::placeholders::_2)
                 );
-    acceptor_->async_accept(*(socket.get()), 
-                           boost::bind(&TcpServerProtocol::handle_accept, this, boost::asio::placeholders::error, socket));
+    boost::shared_ptr<boost::asio::ip::tcp::socket> socketTmp(boost::make_shared<boost::asio::ip::tcp::socket>(*(io_service_.get())));
+    acceptor_->async_accept(*(socketTmp.get()), 
+                           boost::bind(&TcpServerProtocol::handle_accept, this, boost::asio::placeholders::error, socketTmp));
 }
 
 
