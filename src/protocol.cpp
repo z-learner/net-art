@@ -1,6 +1,7 @@
 #include "protocol.h"
 #include "udp_server_protocol.h"
 #include "tcp_server_protocol.h"
+#include "serial_protocol.h"
 #define BUFF_SIZE 1024
 
 namespace protocol {
@@ -29,8 +30,9 @@ boost::shared_ptr<Protocol> GetProtocolByConfig(
     case PROTOCOL_TYPE::UDP_SERVER:
       return boost::make_shared<UdpServerProtocol>(protocol_config, buff_size);
       break;
-    // default:
-    //   break;
+    case PROTOCOL_TYPE::SERIAL:
+      return boost::make_shared<SerialProtocol>(protocol_config, buff_size);
+      break;
   }
   return boost::make_shared<UdpServerProtocol>(protocol_config, buff_size);
 }
